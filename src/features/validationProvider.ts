@@ -134,9 +134,9 @@ export default class HaskellValidationProvider {
 			let processLine = (info: any) => {
 				if (info) {
 					let message = info.hint + " Suggestion: " + info.from + " ==> " + info.to;
+					let severity = info.severity.toLowerCase() === "warning" ? vscode.DiagnosticSeverity.Warning : vscode.DiagnosticSeverity.Error;
 					let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(
-						new vscode.Range(info.startLine - 1, info.startColumn - 1, info.endLine - 1, info.endColumn - 1),
-						message
+						new vscode.Range(info.startLine - 1, info.startColumn - 1, info.endLine - 1, info.endColumn - 1), message, severity
 					)
 					diagnostics.push(diagnostic);
 				}
