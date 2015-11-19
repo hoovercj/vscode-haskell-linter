@@ -1,13 +1,20 @@
 {
 	"name": "haskell-linter",
+	"displayName": "haskell-linter",
 	"description": "An extension to use hlint in vscode",
 	"version": "0.0.1",
-	"publisher": "Cody Hoover",
+	"publisher": "hoovercj",
+	"license": "SEE LICENSE IN LICENSE.txt",
+	"homepage": "https://github.com/hoovercj/vscode-haskell-linter",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/hoovercj/vscode-haskell-linter.git"
+	},
 	"engines": {
 		"vscode": "^0.10.1"
 	},
 	"categories": [
-		"Other"
+		"Linter"
 	],
 	"activationEvents": [
 		"onLanguage:haskell"
