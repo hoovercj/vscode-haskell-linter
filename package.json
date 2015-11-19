@@ -1,0 +1,44 @@
+{
+	"name": "haskell-linter",
+	"description": "An extension to use hlint in vscode",
+	"version": "0.0.1",
+	"publisher": "Cody Hoover",
+	"engines": {
+		"vscode": "^0.10.1"
+	},
+	"categories": [
+		"Other"
+	],
+	"activationEvents": [
+		"onLanguage:haskell"
+	],
+	"main": "./out/src/extension",
+	"contributes": {
+		"languages": [
+			{
+				"id": "haskell",
+				"aliases": ["Haskell", "haskell"],
+				"extensions": [".hs"]
+			}
+		],
+		"commands": [{
+			"command": "extension.sayHaskell",
+			"title": "Hello Haskell"
+		}]
+	},
+	"scripts": {
+		"vscode:prepublish": "node ./node_modules/vscode/bin/compile",
+		"compile": "node ./node_modules/vscode/bin/compile -watch -p ./"
+	},
+	"devDependencies": {
+		"typescript": "^1.6.2",
+		"vscode": "0.10.x"
+	},
+	"properties": {
+		"haskell.validate.executablePath": {
+			"type": "string",
+			"default": null,
+			"description": "Points to the hlint exectuable."
+		}
+	}
+}
