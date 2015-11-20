@@ -57,7 +57,7 @@ export class LineDecoder {
 
 export default class HaskellValidationProvider {
 
-	private static FileArgs: string[] = ['--json', '--hint=Default', '--hint=Dollar', '--hint=Generalise'];
+	private static FileArgs: string[] = ['--json'];
 
 	private executable: string;
 	private executableNotFound: boolean;
