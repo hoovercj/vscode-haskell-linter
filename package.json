@@ -38,10 +38,26 @@
 		"vscode": "0.10.x"
 	},
 	"properties": {
-		"haskell.validate.executablePath": {
+		"haskell.hlint.executablePath": {
 			"type": "string",
 			"default": null,
 			"description": "Points to the hlint exectuable."
-		}
+		},
+		"haskell.hlint.run": {
+			"type": "string",
+			"enum": ["onSave", "onType"],
+			"default": "onSave",
+			"description": "Whether the linter is run on save or on type."
+		},
+		"haskell.hlint.hints": {
+			"type": "string[]",
+			"default": [],
+			"description": "Which hint arguments should be used when calling hlint."
+		},		
+		"haskell.hlint.ignoreSeverity": {
+			"type": "boolean",
+			"default": false,
+			"description": "Whether or not the severity given by hlint is respected."
+		}			
 	}
 }

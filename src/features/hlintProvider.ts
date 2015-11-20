@@ -70,10 +70,32 @@ export class LineDecoder {
 	}
 }
 
-export default class HaskellValidationProvider implements vscode.CodeActionProvider {
+enum RunTrigger {
+	onSave,
+	onType
+}
+
+namespace RunTrigger {
+	export let strings = {
+		onSave: 'onSave',
+		onType: 'onType'
+	}
+	export let from = function(value: string): RunTrigger {
+		if (value === 'onType') {
+			return RunTrigger.onType;
+		} else {
+			return RunTrigger.onSave;
+		}
+	}
+}
+
+export default class HlintProvider implements vscode.CodeActionProvider {
 
 	private static FileArgs: string[] = ['--json'];
-
+	private static BufferArgs: string[] = ['-', '--json'];
+	private trigger: RunTrigger;
+	private hintArgs: string[];
+	private ignoreSeverity: boolean;
 	private executable: string;
 	private executableNotFound: boolean;
 	private commandId:string;
@@ -85,6 +107,9 @@ export default class HaskellValidationProvider implements vscode.CodeActionProvi
 	constructor() {
 		this.executable = null;
 		this.executableNotFound = false;
+		this.trigger = RunTrigger.onSave;
+		this.hintArgs = [];
+		this.ignoreSeverity = false;
 		this.commandId = 'haskell.runCodeAction'
 		this.command = vscode.commands.registerCommand(this.commandId, this.runCodeAction, this);
 	}
@@ -95,14 +120,14 @@ export default class HaskellValidationProvider implements vscode.CodeActionProvi
 		vscode.workspace.onDidChangeConfiguration(this.loadConfiguration, this, subscriptions);
 		this.loadConfiguration();
 
-		vscode.workspace.onDidOpenTextDocument(this.triggerValidate, this, subscriptions);
+		vscode.workspace.onDidOpenTextDocument(this.triggerHlint, this, subscriptions);
 		vscode.workspace.onDidCloseTextDocument((textDocument)=> {
 			this.diagnosticCollection.delete(textDocument.uri);
 			delete this.delayers[textDocument.uri.toString()];
 		}, null, subscriptions);
 
-		// Validate all open haskell documents
-		vscode.workspace.textDocuments.forEach(this.triggerValidate, this);
+		// Hlint all open haskell documents
+		vscode.workspace.textDocuments.forEach(this.triggerHlint, this);
 	}
 
 	public dispose(): void {
@@ -112,11 +137,15 @@ export default class HaskellValidationProvider implements vscode.CodeActionProvi
 	}
 
 	private loadConfiguration(): void {
-		let section = vscode.workspace.getConfiguration('hlint');
+		let section = vscode.workspace.getConfiguration('haskell');
 		let oldExecutable = this.executable;
 		if (section) {
-			this.executable = section.get<string>('validate.executablePath', null);
+			this.executable = section.get<string>('hlint.executablePath', null);
+			this.trigger = RunTrigger.from(section.get<string>('hlint.run', RunTrigger.strings.onSave));
+			this.hintArgs = section.get<string[]>('hlint.hints', []).map(arg => { return `--hint=${arg}` });
+			this.ignoreSeverity = section.get<boolean>('hlint.ignoreSeverity', false);			
 		}
+		
 		this.delayers = Object.create(null);
 		if (this.executableNotFound) {
 			this.executableNotFound = oldExecutable === this.executable;
@@ -124,26 +153,32 @@ export default class HaskellValidationProvider implements vscode.CodeActionProvi
 		if (this.documentListener) {
 			this.documentListener.dispose();
 		}
-		
-		this.documentListener = vscode.workspace.onDidSaveTextDocument(this.triggerValidate, this);
+		if (this.trigger === RunTrigger.onType) {
+			this.documentListener = vscode.workspace.onDidChangeTextDocument((e) => {
+				this.triggerHlint(e.document);
+			});
+		} else {
+			this.documentListener = vscode.workspace.onDidSaveTextDocument(this.triggerHlint, this);
+		}		
+		this.documentListener = vscode.workspace.onDidSaveTextDocument(this.triggerHlint, this);
 		// Configuration has changed. Reevaluate all documents.
-		vscode.workspace.textDocuments.forEach(this.triggerValidate, this);
+		vscode.workspace.textDocuments.forEach(this.triggerHlint, this);
 	}
 
-	private triggerValidate(textDocument: vscode.TextDocument): void {
+	private triggerHlint(textDocument: vscode.TextDocument): void {
 		if (textDocument.languageId !== 'haskell' || this.executableNotFound) {
 			return;
 		}
 		let key = textDocument.uri.toString();
 		let delayer = this.delayers[key];
 		if (!delayer) {
-			delayer = new ThrottledDelayer<void>(0);
-			this.delayers[key];
+			delayer = new ThrottledDelayer<void>(this.trigger === RunTrigger.onType ? 250 : 0);
+			this.delayers[key] = delayer;
 		}
-		delayer.trigger(() => this.doValidate(textDocument) );
+		delayer.trigger(() => this.doHlint(textDocument) );
 	}
 
-	private doValidate(textDocument: vscode.TextDocument): Promise<void> {
+	private doHlint(textDocument: vscode.TextDocument): Promise<void> {
 		return new Promise<void>((resolve, reject) => {
 			let executable = this.executable || 'hlint';
 			let filePath = textDocument.fileName;
@@ -152,15 +187,19 @@ export default class HaskellValidationProvider implements vscode.CodeActionProvi
 			let diagnostics: vscode.Diagnostic[] = [];
 			let processLine = (item: LintItem) => {
 				if (item) {
-					diagnostics.push(HaskellValidationProvider._asDiagnostic(item));
+					diagnostics.push(HlintProvider._asDiagnostic(item, this.ignoreSeverity));
 				}
 			}
 
 			let options = vscode.workspace.rootPath ? { cwd: vscode.workspace.rootPath } : undefined;
 			let args: string[];
-			
-			args = HaskellValidationProvider.FileArgs.slice(0);
-			args.push(textDocument.fileName);
+			if (this.trigger === RunTrigger.onSave) {
+				args = HlintProvider.FileArgs.slice(0);
+				args.push(textDocument.fileName);
+			} else {
+				args = HlintProvider.BufferArgs;
+			}			
+			args = args.concat(this.hintArgs);
 			
 			let childProcess = cp.spawn(executable, args, options);
 			childProcess.on('error', (error: Error) => {
@@ -170,7 +209,7 @@ export default class HaskellValidationProvider implements vscode.CodeActionProvi
 				}
 				let message: string = null;
 				if ((<any>error).code === 'ENOENT') {
-					message = `Cannot validate the haskell file. The hlint program was not found. Use the 'haskell.validate.executablePath' setting to configure the location of 'hlint'`;
+					message = `Cannot hlint the haskell file. The hlint program was not found. Use the 'haskell.hlint.executablePath' setting to configure the location of 'hlint'`;
 				} else {
 					message = error.message ? error.message : `Failed to run hlint using path: ${executable}. Reason is unknown.`;
 				}
@@ -179,6 +218,10 @@ export default class HaskellValidationProvider implements vscode.CodeActionProvi
 				resolve();
 			});
 			if (childProcess.pid) {
+								if (this.trigger === RunTrigger.onType) {
+					childProcess.stdin.write(textDocument.getText());
+					childProcess.stdin.end();
+				}
 				childProcess.stdout.on('data', (data: Buffer) => {
 					decoded = decoded.concat(decoder.write(data));
 				});
@@ -196,7 +239,7 @@ export default class HaskellValidationProvider implements vscode.CodeActionProvi
 	
 	public provideCodeActions(document: vscode.TextDocument, range: vscode.Range, context: vscode.CodeActionContext, token: vscode.CancellationToken): vscode.Command[] {
 		let diagnostic:vscode.Diagnostic = context.diagnostics[0];
-		
+		// TODO: Return multiple commands if there are multiple issues
 		return [{
 			title: "Accept hlint suggestion",
 			command: this.commandId,
@@ -219,8 +262,8 @@ export default class HaskellValidationProvider implements vscode.CodeActionProvi
 		}
 	}
 	
-	private static _asDiagnostic(lintItem: LintItem): vscode.Diagnostic {
-		let severity = this._asDiagnosticSeverity(lintItem.severity);
+	private static _asDiagnostic(lintItem: LintItem, ignoreSeverity:boolean): vscode.Diagnostic {
+		let severity = ignoreSeverity ? vscode.DiagnosticSeverity.Warning : this._asDiagnosticSeverity(lintItem.severity);
 		let message = lintItem.hint + ". Replace: " + lintItem.from + " ==> " + lintItem.to;
 		return new vscode.Diagnostic(this._getRange(lintItem), message, severity);
 	}
