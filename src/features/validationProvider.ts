@@ -9,6 +9,21 @@ import * as vscode from 'vscode';
 
 import { ThrottledDelayer } from './utils/async';
 
+export interface LintItem {
+	module:string;
+	decl:string;
+	severity:string;
+	hint:string;
+    file:string;
+	startLine:number;
+	startColumn:number;
+	endLine:number;
+	endColumn:number;
+	from:string;
+	to:string;
+	note:string[]
+}
+
 export class LineDecoder {
 	private stringDecoder: NodeStringDecoder;
 	private remaining: string;
@@ -55,13 +70,14 @@ export class LineDecoder {
 	}
 }
 
-export default class HaskellValidationProvider {
+export default class HaskellValidationProvider implements vscode.CodeActionProvider {
 
 	private static FileArgs: string[] = ['--json'];
 
 	private executable: string;
 	private executableNotFound: boolean;
-
+	private commandId:string;
+	private command:vscode.Disposable;
 	private documentListener: vscode.Disposable;
 	private diagnosticCollection: vscode.DiagnosticCollection;
 	private delayers: { [key: string]: ThrottledDelayer<void> };
@@ -69,6 +85,8 @@ export default class HaskellValidationProvider {
 	constructor() {
 		this.executable = null;
 		this.executableNotFound = false;
+		this.commandId = 'haskell.runCodeAction'
+		this.command = vscode.commands.registerCommand(this.commandId, this.runCodeAction, this);
 	}
 
 	public activate(subscriptions: vscode.Disposable[]) {
@@ -90,6 +108,7 @@ export default class HaskellValidationProvider {
 	public dispose(): void {
 		this.diagnosticCollection.clear();
 		this.diagnosticCollection.dispose();
+		this.command.dispose();
 	}
 
 	private loadConfiguration(): void {
@@ -131,14 +150,9 @@ export default class HaskellValidationProvider {
 			let decoder = new LineDecoder();
 			let decoded = []
 			let diagnostics: vscode.Diagnostic[] = [];
-			let processLine = (info: any) => {
-				if (info) {
-					let message = info.hint + " Suggestion: " + info.from + " ==> " + info.to;
-					let severity = info.severity.toLowerCase() === "warning" ? vscode.DiagnosticSeverity.Warning : vscode.DiagnosticSeverity.Error;
-					let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(
-						new vscode.Range(info.startLine - 1, info.startColumn - 1, info.endLine - 1, info.endColumn - 1), message, severity
-					)
-					diagnostics.push(diagnostic);
+			let processLine = (item: LintItem) => {
+				if (item) {
+					diagnostics.push(HaskellValidationProvider._asDiagnostic(item));
 				}
 			}
 
@@ -178,5 +192,48 @@ export default class HaskellValidationProvider {
 				resolve();
 			}
 		});
+	}
+	
+	public provideCodeActions(document: vscode.TextDocument, range: vscode.Range, context: vscode.CodeActionContext, token: vscode.CancellationToken): vscode.Command[] {
+		let diagnostic:vscode.Diagnostic = context.diagnostics[0];
+		
+		return [{
+			title: "Accept hlint suggestion",
+			command: this.commandId,
+			arguments: [document, diagnostic.range, diagnostic.message]
+		}];
+	}
+	
+	private runCodeAction(document: vscode.TextDocument, range: vscode.Range, message:string): any {
+		let fromRegex:RegExp = /.*Replace:(.*)==>.*/g
+		let fromMatch:RegExpExecArray = fromRegex.exec(message.replace(/\s/g, ''));
+		let from = fromMatch[1];
+		let to:string = document.getText(range).replace(/\s/g, '')
+		if (from === to) {
+			let newText = /.*==>\s(.*)/g.exec(message)[1]
+			let edit = new vscode.WorkspaceEdit();
+			edit.replace(document.uri, range, newText);
+			return vscode.workspace.applyEdit(edit);
+		} else {
+			vscode.window.showErrorMessage("The suggestion was not applied because it is out of date. You might have tried to apply the same edit twice.");
+		}
+	}
+	
+	private static _asDiagnostic(lintItem: LintItem): vscode.Diagnostic {
+		let severity = this._asDiagnosticSeverity(lintItem.severity);
+		let message = lintItem.hint + ". Replace: " + lintItem.from + " ==> " + lintItem.to;
+		return new vscode.Diagnostic(this._getRange(lintItem), message, severity);
+	}
+
+	private static _asDiagnosticSeverity(logLevel: string): vscode.DiagnosticSeverity {
+		switch (logLevel.toLowerCase()) {
+			case 'warning':
+				return vscode.DiagnosticSeverity.Warning;
+			default:
+				return vscode.DiagnosticSeverity.Error;
+		}
+	}
+    private static _getRange(item: LintItem): vscode.Range {
+		return new vscode.Range(item.startLine - 1, item.startColumn - 1, item.endLine - 1, item.endColumn - 1);
 	}
 }
