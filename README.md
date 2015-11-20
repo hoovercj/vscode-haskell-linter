@@ -2,6 +2,8 @@
 
 "haskell-linter" is a wrapper for [hlint](http://community.haskell.org/~ndm/hlint/). It highlights hlint warnings and errors inline and provides a code-action to accept hlint suggestions.
 
+![IDE](https://media.giphy.com/media/l41lUI8WUMfgNlfvq/giphy.gif)
+
 ## Configuration:
 There are various options that can be configured by making changes to your user or workspace preferences.
 
