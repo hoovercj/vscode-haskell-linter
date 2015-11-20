@@ -27,11 +27,7 @@
 				"aliases": ["Haskell", "haskell"],
 				"extensions": [".hs"]
 			}
-		],
-		"commands": [{
-			"command": "extension.sayHaskell",
-			"title": "Hello Haskell"
-		}]
+		]
 	},
 	"scripts": {
 		"vscode:prepublish": "node ./node_modules/vscode/bin/compile",
