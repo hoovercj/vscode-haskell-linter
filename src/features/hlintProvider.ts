@@ -240,11 +240,13 @@ export default class HlintProvider implements vscode.CodeActionProvider {
 	public provideCodeActions(document: vscode.TextDocument, range: vscode.Range, context: vscode.CodeActionContext, token: vscode.CancellationToken): vscode.Command[] {
 		let diagnostic:vscode.Diagnostic = context.diagnostics[0];
 		// TODO: Return multiple commands if there are multiple issues
-		return [{
-			title: "Accept hlint suggestion",
-			command: this.commandId,
-			arguments: [document, diagnostic.range, diagnostic.message]
-		}];
+		if (diagnostic.message.indexOf('Parse error') !== 0) {
+			return [{
+				title: "Accept hlint suggestion",
+				command: this.commandId,
+				arguments: [document, diagnostic.range, diagnostic.message]
+			}];
+		}
 	}
 	
 	private runCodeAction(document: vscode.TextDocument, range: vscode.Range, message:string): any {

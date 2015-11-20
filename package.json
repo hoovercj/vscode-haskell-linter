@@ -4,6 +4,11 @@
 	"description": "An extension to use hlint in vscode",
 	"version": "0.0.1",
 	"publisher": "hoovercj",
+	"icon": "images/haskell.png",
+	"categories": [
+		"Languages",
+		"Linters"
+	],
 	"license": "SEE LICENSE IN LICENSE.txt",
 	"homepage": "https://github.com/hoovercj/vscode-haskell-linter",
 	"repository": {
@@ -13,9 +18,6 @@
 	"engines": {
 		"vscode": "^0.10.1"
 	},
-	"categories": [
-		"Linter"
-	],
 	"activationEvents": [
 		"onLanguage:haskell"
 	],
