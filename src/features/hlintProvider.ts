@@ -89,7 +89,7 @@ namespace RunTrigger {
 	}
 }
 
-export default class HlintProvider implements vscode.CodeActionProvider {
+export default class HaskellLintingProvider implements vscode.CodeActionProvider {
 
 	private static FileArgs: string[] = ['--json'];
 	private static BufferArgs: string[] = ['-', '--json'];
@@ -187,17 +187,17 @@ export default class HlintProvider implements vscode.CodeActionProvider {
 			let diagnostics: vscode.Diagnostic[] = [];
 			let processLine = (item: LintItem) => {
 				if (item) {
-					diagnostics.push(HlintProvider._asDiagnostic(item, this.ignoreSeverity));
+					diagnostics.push(HaskellLintingProvider._asDiagnostic(item, this.ignoreSeverity));
 				}
 			}
 
 			let options = vscode.workspace.rootPath ? { cwd: vscode.workspace.rootPath } : undefined;
 			let args: string[];
 			if (this.trigger === RunTrigger.onSave) {
-				args = HlintProvider.FileArgs.slice(0);
+				args = HaskellLintingProvider.FileArgs.slice(0);
 				args.push(textDocument.fileName);
 			} else {
-				args = HlintProvider.BufferArgs;
+				args = HaskellLintingProvider.BufferArgs;
 			}			
 			args = args.concat(this.hintArgs);
 			

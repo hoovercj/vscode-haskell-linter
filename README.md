@@ -2,6 +2,14 @@
 
 "haskell-linter" is a wrapper for [hlint](http://community.haskell.org/~ndm/hlint/). It highlights hlint warnings and errors inline and provides a code-action to accept hlint suggestions.
 
+It expects hlint to be installed and already added to the path. If it is installed but cannot be found, add the path to your preferences as seen below.
+
+```json
+{
+	"haskell.hlint.executablePath": "Path\To\Executable"
+}
+```
+
 ![IDE](https://media.giphy.com/media/l41lUI8WUMfgNlfvq/giphy.gif)
 
 ## Configuration:
