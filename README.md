@@ -6,7 +6,7 @@ It expects hlint to be installed and already added to the path. If it is install
 
 ```json
 {
-	"haskell.hlint.executablePath": "Path\To\Executable"
+	"haskell.hlint.executablePath": "PathToExecutable"
 }
 ```
 

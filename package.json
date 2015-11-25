@@ -45,27 +45,11 @@
 			"default": "hlint",
 			"description": "Points to the hlint exectuable."
 		},
-		"haskell.linter.fileArgs": {
-			"type": "string[]",
-			"default": ["--json"],
-			"description": "Points to the hlint exectuable."			
-		},
-		"haskell.linter.bufferArgs": {
-			"type": "string[]",
-			"default": ["--json", "-"],
-			"description": "Points to the hlint exectuable."			
-		},
 		"haskell.linter.run": {
 			"type": "string",
 			"enum": ["onSave", "onType", "off"],
 			"default": "onSave",
 			"description": "Whether the linter is run on save or on type."
-		},
-		"haskell.linter.process": {
-			"type": "string",
-			"enum": ["line", "all"],
-			"default": "all",
-			"description": "Whether the linter output is processed one line at a time, or all at once."
 		},
 		"haskell.linter.args": {
 			"type": "string[]",
