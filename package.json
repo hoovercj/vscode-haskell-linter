@@ -40,23 +40,39 @@
 		"vscode": "0.10.x"
 	},
 	"properties": {
-		"haskell.hlint.executablePath": {
+		"haskell.linter.executablePath": {
 			"type": "string",
-			"default": null,
+			"default": "hlint",
 			"description": "Points to the hlint exectuable."
 		},
-		"haskell.hlint.run": {
+		"haskell.linter.fileArgs": {
+			"type": "string[]",
+			"default": ["--json"],
+			"description": "Points to the hlint exectuable."			
+		},
+		"haskell.linter.bufferArgs": {
+			"type": "string[]",
+			"default": ["--json", "-"],
+			"description": "Points to the hlint exectuable."			
+		},
+		"haskell.linter.run": {
 			"type": "string",
-			"enum": ["onSave", "onType"],
+			"enum": ["onSave", "onType", "off"],
 			"default": "onSave",
 			"description": "Whether the linter is run on save or on type."
 		},
-		"haskell.hlint.hints": {
+		"haskell.linter.process": {
+			"type": "string",
+			"enum": ["line", "all"],
+			"default": "all",
+			"description": "Whether the linter output is processed one line at a time, or all at once."
+		},
+		"haskell.linter.args": {
 			"type": "string[]",
 			"default": [],
 			"description": "Which hint arguments should be used when calling hlint."
 		},		
-		"haskell.hlint.ignoreSeverity": {
+		"haskell.linter.ignoreSeverity": {
 			"type": "boolean",
 			"default": false,
 			"description": "Whether or not the severity given by hlint is respected."
