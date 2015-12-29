@@ -140,10 +140,10 @@ export default class HaskellLintingProvider implements vscode.CodeActionProvider
 		let section = vscode.workspace.getConfiguration('haskell');
 		let oldExecutable = this.executable;
 		if (section) {
-			this.executable = section.get<string>('hlint.executablePath', null);
-			this.trigger = RunTrigger.from(section.get<string>('hlint.run', RunTrigger.strings.onSave));
-			this.hintArgs = section.get<string[]>('hlint.hints', []).map(arg => { return `--hint=${arg}` });
-			this.ignoreSeverity = section.get<boolean>('hlint.ignoreSeverity', false);			
+			this.executable = section.get<string>('linter.executablePath', null);
+			this.trigger = RunTrigger.from(section.get<string>('linter.run', RunTrigger.strings.onSave));
+			this.hintArgs = section.get<string[]>('linter.hints', []).map(arg => { return `--hint=${arg}` });
+			this.ignoreSeverity = section.get<boolean>('linter.ignoreSeverity', false);			
 		}
 		
 		this.delayers = Object.create(null);
@@ -218,7 +218,7 @@ export default class HaskellLintingProvider implements vscode.CodeActionProvider
 				resolve();
 			});
 			if (childProcess.pid) {
-								if (this.trigger === RunTrigger.onType) {
+                if (this.trigger === RunTrigger.onType) {
 					childProcess.stdin.write(textDocument.getText());
 					childProcess.stdin.end();
 				}
@@ -241,24 +241,29 @@ export default class HaskellLintingProvider implements vscode.CodeActionProvider
 		let diagnostic:vscode.Diagnostic = context.diagnostics[0];
 		// TODO: Return multiple commands if there are multiple issues
 		if (diagnostic.message.indexOf('Parse error') !== 0) {
-			return [{
+			return [<vscode.Command>{
 				title: "Accept hlint suggestion",
 				command: this.commandId,
-				arguments: [document, diagnostic.range, diagnostic.message]
+				arguments: [document.getText(range), document.uri, diagnostic.range, diagnostic.message]
 			}];
 		}
 	}
 	
-	private runCodeAction(document: vscode.TextDocument, range: vscode.Range, message:string): any {
+	private runCodeAction(text: string, uri:vscode.Uri, range: any, message:string, test): any {
 		let fromRegex:RegExp = /.*Replace:(.*)==>.*/g
 		let fromMatch:RegExpExecArray = fromRegex.exec(message.replace(/\s/g, ''));
 		let from = fromMatch[1];
-		let to:string = document.getText(range).replace(/\s/g, '')
+		let to:string = text.replace(/\s/g, '')
 		if (from === to) {
 			let newText = /.*==>\s(.*)/g.exec(message)[1]
 			let edit = new vscode.WorkspaceEdit();
-			edit.replace(document.uri, range, newText);
-			return vscode.workspace.applyEdit(edit);
+            let newRange = new vscode.Range(range.startLineNumber - 1, range.startColumn - 1, range.endLineNumber - 1, range.endColumn - 1);
+			edit.replace(uri, newRange, newText);
+            try {
+			 var ret = vscode.workspace.applyEdit(edit);
+            } catch (error) {
+                console.log(error);
+            }
 		} else {
 			vscode.window.showErrorMessage("The suggestion was not applied because it is out of date. You might have tried to apply the same edit twice.");
 		}
