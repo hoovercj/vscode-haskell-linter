@@ -93,6 +93,9 @@ export default class HaskellLintingProvider implements vscode.CodeActionProvider
 
 	private static FileArgs: string[] = ['--json'];
 	private static BufferArgs: string[] = ['-', '--json'];
+    private  static hlintSuggestionPrefix: string = 'Hlint Suggestion: ';
+    private  static hlintErrorPrefix: string = 'Hlint Error: ';
+    
 	private trigger: RunTrigger;
 	private hintArgs: string[];
 	private ignoreSeverity: boolean;
@@ -103,7 +106,7 @@ export default class HaskellLintingProvider implements vscode.CodeActionProvider
 	private documentListener: vscode.Disposable;
 	private diagnosticCollection: vscode.DiagnosticCollection;
 	private delayers: { [key: string]: ThrottledDelayer<void> };
-
+    
 	constructor() {
 		this.executable = null;
 		this.executableNotFound = false;
@@ -238,40 +241,41 @@ export default class HaskellLintingProvider implements vscode.CodeActionProvider
 	}
 	
 	public provideCodeActions(document: vscode.TextDocument, range: vscode.Range, context: vscode.CodeActionContext, token: vscode.CancellationToken): vscode.Command[] {
-		let diagnostic:vscode.Diagnostic = context.diagnostics[0];
-		// TODO: Return multiple commands if there are multiple issues
-		if (diagnostic.message.indexOf('Parse error') !== 0) {
-			return [<vscode.Command>{
-				title: "Accept hlint suggestion",
-				command: this.commandId,
-				arguments: [document.getText(range), document.uri, diagnostic.range, diagnostic.message]
-			}];
-		}
+        return context.diagnostics.map((diagnostic) => {
+            if (diagnostic.message.indexOf(HaskellLintingProvider.hlintSuggestionPrefix) === 0) {
+                let match = /Replace with: (.*)/.exec(diagnostic.message)
+                if (match[1]) {
+                    return <vscode.Command>{
+                        title: diagnostic.message.replace(HaskellLintingProvider.hlintSuggestionPrefix, ''),
+                        command: this.commandId,
+                        arguments: [match[1], document.uri, diagnostic.range, diagnostic.message]
+                    };
+                }
+            } else {
+                return null;
+            }
+        }).reverse();
 	}
 	
-	private runCodeAction(text: string, uri:vscode.Uri, range: any, message:string, test): any {
-		let fromRegex:RegExp = /.*Replace:(.*)==>.*/g
-		let fromMatch:RegExpExecArray = fromRegex.exec(message.replace(/\s/g, ''));
-		let from = fromMatch[1];
-		let to:string = text.replace(/\s/g, '')
-		if (from === to) {
-			let newText = /.*==>\s(.*)/g.exec(message)[1]
-			let edit = new vscode.WorkspaceEdit();
-            let newRange = new vscode.Range(range.startLineNumber - 1, range.startColumn - 1, range.endLineNumber - 1, range.endColumn - 1);
-			edit.replace(uri, newRange, newText);
-            try {
-			 var ret = vscode.workspace.applyEdit(edit);
-            } catch (error) {
-                console.log(error);
-            }
-		} else {
-			vscode.window.showErrorMessage("The suggestion was not applied because it is out of date. You might have tried to apply the same edit twice.");
-		}
+	private runCodeAction(replacementText: string, uri:vscode.Uri, range: any): any {
+		let edit = new vscode.WorkspaceEdit();
+        let newRange = new vscode.Range(range.startLineNumber - 1, range.startColumn - 1, range.endLineNumber - 1, range.endColumn - 1);
+        edit.replace(uri, newRange, replacementText);
+        try {
+            var ret = vscode.workspace.applyEdit(edit);
+        } catch (error) {
+            console.log(error);
+        }
 	}
 	
 	private static _asDiagnostic(lintItem: LintItem, ignoreSeverity:boolean): vscode.Diagnostic {
 		let severity = ignoreSeverity ? vscode.DiagnosticSeverity.Warning : this._asDiagnosticSeverity(lintItem.severity);
-		let message = lintItem.hint + ". Replace: " + lintItem.from + " ==> " + lintItem.to;
+        let message: string;
+        if (lintItem.hint.toLocaleLowerCase().indexOf('parse error') === -1 ) {
+            message = this.hlintSuggestionPrefix + lintItem.hint + '. Replace with: ' + lintItem.to;
+        } else {
+            message = this.hlintErrorPrefix + lintItem.hint;
+        }
 		return new vscode.Diagnostic(this._getRange(lintItem), message, severity);
 	}
 
