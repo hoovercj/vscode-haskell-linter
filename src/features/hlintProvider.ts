@@ -229,8 +229,10 @@ export default class HaskellLintingProvider implements vscode.CodeActionProvider
 					decoded = decoded.concat(decoder.write(data));
 				});
 				childProcess.stdout.on('end', () => {
-					decoded = decoded.concat(decoder.end());
-					JSON.parse(decoded.join('')).forEach(processLine);
+					let output = decoded.concat(decoder.end()).join('');
+                    if (output) {
+					   JSON.parse(output).forEach(processLine);
+                    }
 					this.diagnosticCollection.set(textDocument.uri, diagnostics);
 					resolve();
 				});
