@@ -20,7 +20,7 @@ It expects hlint to be installed and already added to the path. If it is install
 }
 ```
 
-![IDE](https://media.giphy.com/media/l41lUI8WUMfgNlfvq/giphy.gif)
+![IDE](images/animation.gif)
 
 ## Configuration:
 There are various options that can be configured by making changes to your user or workspace preferences.
