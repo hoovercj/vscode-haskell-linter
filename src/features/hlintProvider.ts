@@ -268,6 +268,7 @@ export default class HaskellLintingProvider implements vscode.CodeActionProvider
         } catch (error) {
             console.log(error);
         }
+        return ret;
 	}
 	
 	private static _asDiagnostic(lintItem: LintItem, ignoreSeverity:boolean): vscode.Diagnostic {
