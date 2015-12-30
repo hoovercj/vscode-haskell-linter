@@ -81,10 +81,10 @@ namespace RunTrigger {
 		onType: 'onType'
 	}
 	export let from = function(value: string): RunTrigger {
-		if (value === 'onType') {
-			return RunTrigger.onType;
-		} else {
+		if (value === 'onSave') {
 			return RunTrigger.onSave;
+		} else {
+			return RunTrigger.onType;
 		}
 	}
 }
@@ -98,7 +98,6 @@ export default class HaskellLintingProvider implements vscode.CodeActionProvider
     
 	private trigger: RunTrigger;
 	private hintArgs: string[];
-	private ignoreSeverity: boolean;
 	private executable: string;
 	private executableNotFound: boolean;
 	private commandId:string;
@@ -110,9 +109,8 @@ export default class HaskellLintingProvider implements vscode.CodeActionProvider
 	constructor() {
 		this.executable = null;
 		this.executableNotFound = false;
-		this.trigger = RunTrigger.onSave;
+		// this.trigger = RunTrigger.onType;
 		this.hintArgs = [];
-		this.ignoreSeverity = false;
 		this.commandId = 'haskell.runCodeAction'
 		this.command = vscode.commands.registerCommand(this.commandId, this.runCodeAction, this);
 	}
@@ -143,10 +141,9 @@ export default class HaskellLintingProvider implements vscode.CodeActionProvider
 		let section = vscode.workspace.getConfiguration('haskell');
 		let oldExecutable = this.executable;
 		if (section) {
-			this.executable = section.get<string>('linter.executablePath', null);
-			this.trigger = RunTrigger.from(section.get<string>('linter.run', RunTrigger.strings.onSave));
-			this.hintArgs = section.get<string[]>('linter.hints', []).map(arg => { return `--hint=${arg}` });
-			this.ignoreSeverity = section.get<boolean>('linter.ignoreSeverity', false);			
+			this.executable = section.get<string>('hlint.executablePath', null);
+			this.trigger = RunTrigger.from(section.get<string>('hlint.run', RunTrigger.strings.onType));
+			this.hintArgs = section.get<string[]>('hlint.hints', []).map(arg => { return `--hint=${arg}` });
 		}
 		
 		this.delayers = Object.create(null);
@@ -190,7 +187,7 @@ export default class HaskellLintingProvider implements vscode.CodeActionProvider
 			let diagnostics: vscode.Diagnostic[] = [];
 			let processLine = (item: LintItem) => {
 				if (item) {
-					diagnostics.push(HaskellLintingProvider._asDiagnostic(item, this.ignoreSeverity));
+					diagnostics.push(HaskellLintingProvider._asDiagnostic(item));
 				}
 			}
 
@@ -271,8 +268,8 @@ export default class HaskellLintingProvider implements vscode.CodeActionProvider
         return ret;
 	}
 	
-	private static _asDiagnostic(lintItem: LintItem, ignoreSeverity:boolean): vscode.Diagnostic {
-		let severity = ignoreSeverity ? vscode.DiagnosticSeverity.Warning : this._asDiagnosticSeverity(lintItem.severity);
+	private static _asDiagnostic(lintItem: LintItem): vscode.Diagnostic {
+		let severity = this._asDiagnosticSeverity(lintItem.severity);
         let message: string;
         if (lintItem.hint.toLocaleLowerCase().indexOf('parse error') === -1 ) {
             message = this.hlintSuggestionPrefix + lintItem.hint + '. Replace with: ' + lintItem.to;
