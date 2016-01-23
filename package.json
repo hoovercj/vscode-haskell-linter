@@ -2,7 +2,7 @@
 	"name": "haskell-linter",
 	"displayName": "haskell-linter",
 	"description": "An extension to use hlint in vscode",
-	"version": "0.0.2",
+	"version": "0.0.3",
 	"publisher": "hoovercj",
 	"icon": "images/haskell.png",
 	"categories": [
@@ -29,7 +29,28 @@
 				"aliases": ["Haskell", "haskell"],
 				"extensions": [".hs",".lhs"]
 			}
-		]
+		],
+        "configuration": {
+            "title": "",
+            "properties": {
+                "haskell.hlint.executablePath": {
+                    "type": "string",
+                    "default": null,
+                    "description": "Points to the hlint exectuable."
+                },
+                "haskell.hlint.run": {
+                    "type": "string",
+                    "enum": ["onSave", "onType", "never"],
+                    "default": "onType",
+                    "description": "Whether the linter is run on save or on type or disabled."
+                },
+                "haskell.hlint.hints": {
+                    "type": "array",
+                    "default": [],
+                    "description": "Which hint arguments should be used when calling hlint."
+                }
+            }
+        }
 	},
 	"scripts": {
 		"vscode:prepublish": "node ./node_modules/vscode/bin/compile",
@@ -38,23 +59,5 @@
 	"devDependencies": {
 		"typescript": "^1.6.2",
 		"vscode": "0.10.x"
-	},
-	"properties": {
-		"haskell.hlint.executablePath": {
-			"type": "string",
-			"default": null,
-			"description": "Points to the hlint exectuable."
-		},
-		"haskell.hlint.run": {
-			"type": "string",
-			"enum": ["onSave", "onType"],
-			"default": "onType",
-			"description": "Whether the linter is run on save or on type."
-		},
-		"haskell.hlint.hints": {
-			"type": "string[]",
-			"default": [],
-			"description": "Which hint arguments should be used when calling hlint."
-		}
 	}
 }

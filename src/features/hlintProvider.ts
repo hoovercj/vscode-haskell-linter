@@ -70,20 +70,24 @@ export class LineDecoder {
 
 enum RunTrigger {
     onSave,
-    onType
+    onType,
+    never
 }
 
 namespace RunTrigger {
     'use strict';
     export let strings = {
         onSave: 'onSave',
-        onType: 'onType'
+        onType: 'onType',
+        never: 'never'
     };
     export let from = function(value: string): RunTrigger {
         if (value === 'onSave') {
             return RunTrigger.onSave;
-        } else {
+        } else if (value === 'onType') {
             return RunTrigger.onType;
+        } else {
+            return RunTrigger.never;
         }
     };
 }
@@ -173,10 +177,9 @@ export default class HaskellLintingProvider implements vscode.CodeActionProvider
             this.documentListener = vscode.workspace.onDidChangeTextDocument((e) => {
                 this.triggerHlint(e.document);
             });
-        } else {
+        } else if (this.trigger === RunTrigger.onSave) {
             this.documentListener = vscode.workspace.onDidSaveTextDocument(this.triggerHlint, this);
         }
-        this.documentListener = vscode.workspace.onDidSaveTextDocument(this.triggerHlint, this);
         // Configuration has changed. Reevaluate all documents.
         vscode.workspace.textDocuments.forEach(this.triggerHlint, this);
     }
@@ -185,6 +188,12 @@ export default class HaskellLintingProvider implements vscode.CodeActionProvider
         if (textDocument.languageId !== 'haskell' || this.executableNotFound) {
             return;
         }
+
+        if (this.trigger === RunTrigger.never) {
+            this.diagnosticCollection.set(textDocument.uri, null);
+            return;
+        }
+
         let key = textDocument.uri.toString();
         let delayer = this.delayers[key];
         if (!delayer) {

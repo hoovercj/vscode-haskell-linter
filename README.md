@@ -1,6 +1,11 @@
 # README
 
 ## Changelog
+__0.0.3__:
+- Fixed bug where linting was always being performed on save
+- Added option to disable linting
+- Added configuration schema to `package.json` which helps users when changing preferences
+
 __0.0.2__:
 - Fixed configuration, setting `haskell.hlint.executablePath` should work
 - Fixed code actions in response to [this VS Code issue](https://github.com/Microsoft/vscode/issues/1698)
@@ -26,11 +31,11 @@ It expects hlint to be installed and already added to the path. If it is install
 There are various options that can be configured by making changes to your user or workspace preferences.
 
 ### Lint onType or onSave
-By default the linter will lint as you type. Alternatively, use the setting below if you want to lint only when the file is saved. This will work best if auto-save is on.
+By default the linter will lint as you type. Alternatively, set `haskell.hlint.run` to `onSave` or `never` if you want to lint only when the file is saved (works best if auto-save is on) or disable it for a workspace or entirely. 
 
 ```json
 {
-	"haskell.hlint.run": "onSave"
+	"haskell.hlint.run": "onType" // lso: "onSave", "never" 
 }
 ```
 
