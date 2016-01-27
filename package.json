@@ -48,6 +48,11 @@
                     "type": "array",
                     "default": [],
                     "description": "Which hint arguments should be used when calling hlint."
+                },
+                "haskell.hlint.ignore": {
+                    "type": "array",
+                    "default": [],
+                    "description": "List of hints to be ignored" 
                 }
             }
         }

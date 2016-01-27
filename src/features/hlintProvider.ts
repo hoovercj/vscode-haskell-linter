@@ -101,6 +101,7 @@ export default class HaskellLintingProvider implements vscode.CodeActionProvider
 
     private trigger: RunTrigger;
     private hintArgs: string[];
+    private ignoreArgs: string[];
     private executable: string;
     private executableNotFound: boolean;
     private commandId: string;
@@ -113,6 +114,7 @@ export default class HaskellLintingProvider implements vscode.CodeActionProvider
         this.executable = null;
         this.executableNotFound = false;
         this.hintArgs = [];
+        this.ignoreArgs = [];
         this.commandId = 'haskell.runCodeAction';
         this.command = vscode.commands.registerCommand(this.commandId, this.runCodeAction, this);
     }
@@ -164,6 +166,7 @@ export default class HaskellLintingProvider implements vscode.CodeActionProvider
             this.executable = section.get<string>('hlint.executablePath', null);
             this.trigger = RunTrigger.from(section.get<string>('hlint.run', RunTrigger.strings.onType));
             this.hintArgs = section.get<string[]>('hlint.hints', []).map(arg => { return `--hint=${arg}`; });
+            this.ignoreArgs = section.get<string[]>('hlint.ignore', []).map(arg => { return `--ignore=${arg}`; });
         }
 
         this.delayers = Object.create(null);
@@ -224,6 +227,7 @@ export default class HaskellLintingProvider implements vscode.CodeActionProvider
                 args = HaskellLintingProvider.bufferArgs;
             }
             args = args.concat(this.hintArgs);
+            args = args.concat(this.ignoreArgs);
 
             let childProcess = cp.spawn(executable, args, options);
             childProcess.on('error', (error: Error) => {
