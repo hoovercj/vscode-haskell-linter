@@ -1,35 +1,35 @@
 {
-	"name": "haskell-linter",
-	"displayName": "haskell-linter",
-	"description": "An extension to use hlint in vscode",
-	"version": "0.0.3",
-	"publisher": "hoovercj",
-	"icon": "images/haskell.png",
-	"categories": [
-		"Languages",
-		"Linters"
-	],
-	"license": "SEE LICENSE IN LICENSE.txt",
-	"homepage": "https://github.com/hoovercj/vscode-haskell-linter",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/hoovercj/vscode-haskell-linter.git"
-	},
-	"engines": {
-		"vscode": "^0.10.1"
-	},
-	"activationEvents": [
-		"onLanguage:haskell"
-	],
-	"main": "./out/src/extension",
-	"contributes": {
-		"languages": [
-			{
-				"id": "haskell",
-				"aliases": ["Haskell", "haskell"],
-				"extensions": [".hs",".lhs"]
-			}
-		],
+    "name": "haskell-linter",
+    "displayName": "haskell-linter",
+    "description": "An extension to use hlint in vscode",
+    "version": "0.0.4",
+    "publisher": "hoovercj",
+    "icon": "images/haskell.png",
+    "categories": [
+        "Languages",
+        "Linters"
+    ],
+    "license": "SEE LICENSE IN LICENSE.txt",
+    "homepage": "https://github.com/hoovercj/vscode-haskell-linter",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/hoovercj/vscode-haskell-linter.git"
+    },
+    "engines": {
+        "vscode": "^0.10.1"
+    },
+    "activationEvents": [
+        "onLanguage:haskell"
+    ],
+    "main": "./out/src/extension",
+    "contributes": {
+        "languages": [
+            {
+                "id": "haskell",
+                "aliases": ["Haskell", "haskell"],
+                "extensions": [".hs",".lhs"]
+            }
+        ],
         "configuration": {
             "title": "",
             "properties": {
@@ -52,17 +52,17 @@
                 "haskell.hlint.ignore": {
                     "type": "array",
                     "default": [],
-                    "description": "List of hints to be ignored" 
+                    "description": "List of hints to be ignored"
                 }
             }
         }
-	},
-	"scripts": {
-		"vscode:prepublish": "node ./node_modules/vscode/bin/compile",
-		"compile": "node ./node_modules/vscode/bin/compile -watch -p ./"
-	},
-	"devDependencies": {
-		"typescript": "^1.6.2",
-		"vscode": "0.10.x"
-	}
+    },
+    "scripts": {
+        "vscode:prepublish": "node ./node_modules/vscode/bin/compile",
+        "compile": "node ./node_modules/vscode/bin/compile -watch -p ./"
+    },
+    "devDependencies": {
+        "typescript": "^1.6.2",
+        "vscode": "0.10.x"
+    }
 }
