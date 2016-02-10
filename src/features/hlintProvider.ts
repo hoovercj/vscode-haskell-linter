@@ -269,7 +269,7 @@ export default class HaskellLintingProvider implements vscode.CodeActionProvider
 
     private runCodeAction(replacementText: string, uri: vscode.Uri, range: any): Thenable<boolean> {
         let edit = new vscode.WorkspaceEdit();
-        let newRange = new vscode.Range(range.startLineNumber - 1, range.startColumn - 1, range.endLineNumber - 1, range.endColumn - 1);
+        let newRange = new vscode.Range(range.start.line, range.start.character, range.end.line, range.end.character);
         edit.replace(uri, newRange, replacementText);
         let ret: Thenable<boolean>;
         try {
