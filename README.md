@@ -38,7 +38,7 @@ By default the linter will lint as you type. Alternatively, set `haskell.hlint.r
 
 ```json
 {
-	"haskell.hlint.run": "onType" // lso: "onSave", "never" 
+	"haskell.hlint.run": "onType" // also: "onSave", "never"
 }
 ```
 
@@ -49,6 +49,15 @@ By default the linter simply calls the `hlint` command without arguments. To spe
 {
 	"haskell.hlint.hints": ["Default", "Dollar", "Generalise"],
     "haskell.hlint.ignore": ["Redundant do"]
+}
+```
+
+### Troubleshooting
+If you're having issues with the extension, set the logLevel setting to `log` and check the output in the developer tools console.
+
+```json
+{
+    "haskell.hlint.logLevel": "log"
 }
 ```
 

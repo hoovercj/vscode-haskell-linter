@@ -2,7 +2,7 @@
     "name": "haskell-linter",
     "displayName": "haskell-linter",
     "description": "An extension to use hlint in vscode",
-    "version": "0.0.4",
+    "version": "0.0.5",
     "publisher": "hoovercj",
     "icon": "images/haskell.png",
     "categories": [
