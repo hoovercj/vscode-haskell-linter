@@ -26,8 +26,14 @@
         "languages": [
             {
                 "id": "haskell",
-                "aliases": ["Haskell", "haskell"],
-                "extensions": [".hs",".lhs"]
+                "aliases": [
+                    "Haskell",
+                    "haskell"
+                ],
+                "extensions": [
+                    ".hs",
+                    ".lhs"
+                ]
             }
         ],
         "configuration": {
@@ -40,7 +46,11 @@
                 },
                 "haskell.hlint.run": {
                     "type": "string",
-                    "enum": ["onSave", "onType", "never"],
+                    "enum": [
+                        "onSave",
+                        "onType",
+                        "never"
+                    ],
                     "default": "onType",
                     "description": "Whether the linter is run on save or on type or disabled."
                 },
@@ -53,6 +63,18 @@
                     "type": "array",
                     "default": [],
                     "description": "List of hints to be ignored"
+                },
+                "haskell.hlint.logLevel": {
+                    "type": "string",
+                    "enum": [
+                        "none",
+                        "log",
+                        "info",
+                        "warn",
+                        "error"
+                    ],
+                    "default": "error",
+                    "description": "Controls the verbosity of logging. Logs can be seen in the console by opening the dev tools. `log` is the most verbose and `error` will only show critical errors"
                 }
             }
         }

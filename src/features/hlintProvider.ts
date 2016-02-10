@@ -6,6 +6,7 @@ import { NodeStringDecoder, StringDecoder } from 'string_decoder';
 import * as vscode from 'vscode';
 
 import { ThrottledDelayer } from './utils/async';
+import { LogLevel, ILogger, Logger } from './utils/logger';
 
 export interface LintItem {
     module: string;
@@ -109,6 +110,7 @@ export default class HaskellLintingProvider implements vscode.CodeActionProvider
     private documentListener: vscode.Disposable;
     private diagnosticCollection: vscode.DiagnosticCollection;
     private delayers: { [key: string]: ThrottledDelayer<void> };
+    private logger: ILogger;
 
     constructor() {
         this.executable = null;
@@ -117,6 +119,7 @@ export default class HaskellLintingProvider implements vscode.CodeActionProvider
         this.ignoreArgs = [];
         this.commandId = 'haskell.runCodeAction';
         this.command = vscode.commands.registerCommand(this.commandId, this.runCodeAction, this);
+        this.logger = new Logger();
     }
 
     public activate(subscriptions: vscode.Disposable[]): void {
@@ -143,7 +146,7 @@ export default class HaskellLintingProvider implements vscode.CodeActionProvider
 
     public provideCodeActions(document: vscode.TextDocument, range: vscode.Range,
             context: vscode.CodeActionContext, token: vscode.CancellationToken): vscode.Command[] {
-        return context.diagnostics.map((diagnostic) => {
+        let codeActions = context.diagnostics.map((diagnostic) => {
             if (diagnostic.message.indexOf(HaskellLintingProvider.hlintSuggestionPrefix) === 0) {
                 let match = /Replace with: (.*)/.exec(diagnostic.message);
                 if (match[1]) {
@@ -157,9 +160,12 @@ export default class HaskellLintingProvider implements vscode.CodeActionProvider
                 return null;
             }
         }).reverse();
+        codeActions ? this.logger.log(`Found ${codeActions.length} code actions.`) : this.logger.log(`Found no code actions.`) 
+        return codeActions;
     }
 
     private loadConfiguration(): void {
+        this.logger.log('Configuration changed');
         let section = vscode.workspace.getConfiguration('haskell');
         let oldExecutable = this.executable;
         if (section) {
@@ -167,6 +173,8 @@ export default class HaskellLintingProvider implements vscode.CodeActionProvider
             this.trigger = RunTrigger.from(section.get<string>('hlint.run', RunTrigger.strings.onType));
             this.hintArgs = section.get<string[]>('hlint.hints', []).map(arg => { return `--hint=${arg}`; });
             this.ignoreArgs = section.get<string[]>('hlint.ignore', []).map(arg => { return `--ignore=${arg}`; });
+            let logLevel:string = section.get<string>('hlint.logLevel', 'error');
+            this.logger.setLogLevel(<LogLevel>LogLevel[logLevel]);
         }
 
         this.delayers = Object.create(null);
@@ -193,6 +201,7 @@ export default class HaskellLintingProvider implements vscode.CodeActionProvider
         }
 
         if (this.trigger === RunTrigger.never) {
+            this.logger.log('triggerHlint: RunTrigger is never');
             this.diagnosticCollection.set(textDocument.uri, null);
             return;
         }
@@ -229,6 +238,7 @@ export default class HaskellLintingProvider implements vscode.CodeActionProvider
             args = args.concat(this.hintArgs);
             args = args.concat(this.ignoreArgs);
 
+            this.logger.log(`Starting "${executable} ${args.join(' ')}"`);
             let childProcess = cp.spawn(executable, args, options);
             childProcess.on('error', (error: Error) => {
                 if (this.executableNotFound) {
@@ -241,7 +251,7 @@ export default class HaskellLintingProvider implements vscode.CodeActionProvider
                 } else {
                     message = error.message ? error.message : `Failed to run hlint using path: ${executable}. Reason is unknown.`;
                 }
-                vscode.window.showInformationMessage(message);
+                this.logger.error(message);
                 this.executableNotFound = true;
                 resolve();
             });
@@ -256,7 +266,10 @@ export default class HaskellLintingProvider implements vscode.CodeActionProvider
                 childProcess.stdout.on('end', () => {
                     let output = decoded.concat(decoder.end()).join('');
                     if (output) {
-                       JSON.parse(output).forEach(processLine);
+                        this.logger.log(`hlint output:\n${output}`);
+                        JSON.parse(output).forEach(processLine);
+                    } else {
+                        this.logger.log('No hlint output');
                     }
                     this.diagnosticCollection.set(textDocument.uri, diagnostics);
                     resolve();
@@ -275,7 +288,7 @@ export default class HaskellLintingProvider implements vscode.CodeActionProvider
         try {
             ret = vscode.workspace.applyEdit(edit);
         } catch (error) {
-            console.log(error);
+            this.logger.warn(error);
         }
         return ret;
     }
