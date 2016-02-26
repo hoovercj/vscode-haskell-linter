@@ -20,7 +20,8 @@ __0.0.2__:
 ## Overview
 "haskell-linter" is a wrapper for [hlint](http://community.haskell.org/~ndm/hlint/). It highlights hlint warnings and errors inline and provides a code-action to accept hlint suggestions.
 
-It expects hlint to be installed and already added to the path. If it is installed but cannot be found, add the path to your preferences as seen below.
+## Dependencies
+It expects a version of hlint >= 1.9.1 to be installed and already added to the path. If it is installed but cannot be found, add the path to your preferences as seen below.
 
 ```json
 {
@@ -53,7 +54,7 @@ By default the linter simply calls the `hlint` command without arguments. To spe
 ```
 
 ### Troubleshooting
-If you're having issues with the extension, set the logLevel setting to `log` and check the output in the developer tools console.
+Make sure you have a hlint installed and that the version is 1.9.1 or newer. If you're having issues with the extension, set the logLevel setting to `log` and check the output in the developer tools console.
 
 ```json
 {
