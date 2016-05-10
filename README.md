@@ -1,22 +1,4 @@
 # README
-
-## Changelog
-__0.0.4__:
-- Added `hlint.ignore` configuration (Thanks to @vigoo) 
-
-__0.0.3__:
-- Fixed bug where linting was always being performed on save
-- Added option to disable linting
-- Added configuration schema to `package.json` which helps users when changing preferences
-
-__0.0.2__:
-- Fixed configuration, setting `haskell.hlint.executablePath` should work
-- Fixed code actions in response to [this VS Code issue](https://github.com/Microsoft/vscode/issues/1698)
-- Made issues more readable
-- Get information/choose from multiple suggestions
-- Default linting is now onType
-- Removed ignoreSeverity setting
-
 ## Overview
 "haskell-linter" is a wrapper for [hlint](http://community.haskell.org/~ndm/hlint/). It highlights hlint warnings and errors inline and provides a code-action to accept hlint suggestions.
 
@@ -64,3 +46,24 @@ Make sure you have a hlint installed and that the version is 1.9.1 or newer. If 
 
 ## Acknowledgements
 The extension architecture is based off of the PHPValidationProvider from the built-in [php extension](https://github.com/Microsoft/vscode/tree/master/extensions/php).
+
+
+## Changelog
+__0.0.5__:
+- Fixed issue [#11 Incorrect Type in settings.json](https://github.com/hoovercj/vscode-haskell-linter/issues/11)
+
+__0.0.4__:
+- Added `hlint.ignore` configuration (Thanks to @vigoo) 
+
+__0.0.3__:
+- Fixed bug where linting was always being performed on save
+- Added option to disable linting
+- Added configuration schema to `package.json` which helps users when changing preferences
+
+__0.0.2__:
+- Fixed configuration, setting `haskell.hlint.executablePath` should work
+- Fixed code actions in response to [this VS Code issue](https://github.com/Microsoft/vscode/issues/1698)
+- Made issues more readable
+- Get information/choose from multiple suggestions
+- Default linting is now onType
+- Removed ignoreSeverity setting

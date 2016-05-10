@@ -169,7 +169,7 @@ export default class HaskellLintingProvider implements vscode.CodeActionProvider
         let section = vscode.workspace.getConfiguration('haskell');
         let oldExecutable = this.executable;
         if (section) {
-            this.executable = section.get<string>('hlint.executablePath', null);
+            this.executable = section.get<string>('hlint.executablePath', "hlint");
             this.trigger = RunTrigger.from(section.get<string>('hlint.run', RunTrigger.strings.onType));
             this.hintArgs = section.get<string[]>('hlint.hints', []).map(arg => { return `--hint=${arg}`; });
             this.ignoreArgs = section.get<string[]>('hlint.ignore', []).map(arg => { return `--ignore=${arg}`; });
