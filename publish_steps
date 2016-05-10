@@ -1,0 +1,2 @@
+vsce package vscode-haskell-linter --baseImagesUrl https://raw.githubusercontent.com/hoovercj/vscode-haskell-linter/master/
+vsce publish vscode-haskell-linter

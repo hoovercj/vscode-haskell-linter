@@ -49,7 +49,7 @@ The extension architecture is based off of the PHPValidationProvider from the bu
 
 
 ## Changelog
-__0.0.5__:
+__0.0.6__:
 - Fixed issue [#11 Incorrect Type in settings.json](https://github.com/hoovercj/vscode-haskell-linter/issues/11)
 
 __0.0.4__:
