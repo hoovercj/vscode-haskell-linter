@@ -37,7 +37,7 @@
             }
         ],
         "configuration": {
-            "title": "",
+            "title": "Haskell Linter",
             "properties": {
                 "haskell.hlint.executablePath": {
                     "type": "string",
