@@ -148,7 +148,7 @@ export default class HaskellLintingProvider implements vscode.CodeActionProvider
             context: vscode.CodeActionContext, token: vscode.CancellationToken): vscode.Command[] {
         let codeActions = context.diagnostics.map((diagnostic) => {
             if (diagnostic.message.indexOf(HaskellLintingProvider.hlintSuggestionPrefix) === 0) {
-                let match = /Replace with: (.*)/.exec(diagnostic.message);
+                let match = /Replace with: (.*)/s.exec(diagnostic.message);
                 if (match[1]) {
                     return <vscode.Command>{
                         title: diagnostic.message.replace(HaskellLintingProvider.hlintSuggestionPrefix, ''),
